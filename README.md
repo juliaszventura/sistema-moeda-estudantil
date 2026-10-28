@@ -12,6 +12,7 @@ Sistema para estimular o reconhecimento do mérito estudantil por meio de uma mo
 
 - [📖 Sobre](#-sobre)
 - [🎯 Objetivo](#-objetivo)
+- [🧭 Escopo Implementado](#-escopo-implementado)
 - [👥 Atores](#-atores)
 - [🗂️ Casos de Uso](#️-casos-de-uso)
 - [📝 Histórias de Usuário](#-histórias-de-usuário)
@@ -38,15 +39,33 @@ O sistema conecta três perfis de usuário: aluno, professor e empresa parceira.
 
 Fornecer uma solução centralizada que permita:
 
-- ✅ Cadastrar alunos e empresas parceiras no sistema de mérito
-- ✅ Creditar semestralmente moedas aos professores, de forma acumulável
-- ✅ Permitir que professores reconheçam alunos com envio de moedas e motivo obrigatório
-- ✅ Notificar o aluno por email a cada reconhecimento recebido
-- ✅ Permitir a consulta de extrato de conta por professores e alunos
-- ✅ Permitir que empresas parceiras cadastrem vantagens com descrição, foto e custo em moedas
-- ✅ Permitir que alunos resgatem vantagens, debitando o valor do seu saldo
-- ✅ Gerar e enviar por email o código do cupom ao aluno e ao parceiro, para conferência da troca
-- ✅ Garantir o acesso autenticado de todos os perfis de usuário
+- Cadastrar alunos e empresas parceiras no sistema de mérito
+- Creditar semestralmente moedas aos professores, de forma acumulável
+- Permitir que professores reconheçam alunos com envio de moedas e motivo obrigatório
+- Notificar o aluno por email a cada reconhecimento recebido
+- Permitir a consulta de extrato de conta por professores e alunos
+- Permitir que empresas parceiras cadastrem vantagens com descrição, foto e custo em moedas
+- Permitir que alunos resgatem vantagens, debitando o valor do seu saldo
+- Gerar e enviar por email o código do cupom ao aluno e ao parceiro, para conferência da troca
+- Garantir o acesso autenticado de todos os perfis de usuário
+
+## 🧭 Escopo Implementado
+
+A modelagem (casos de uso, classes, ER e componentes) cobre o sistema completo. A implementação segue as sprints da disciplina:
+
+| Funcionalidade | Situação |
+|---|---|
+| CRUD de alunos, com seleção de instituição e curso | ✅ Implementado |
+| CRUD de empresas parceiras | ✅ Implementado |
+| Instituições de ensino e cursos pré-cadastrados | ✅ Implementado (carga por script SQL) |
+| Validação de CPF, CNPJ, e-mail, login e senha | ✅ Implementado |
+| Senhas armazenadas com hash BCrypt | ✅ Implementado |
+| Tratamento padronizado de erros da API (`400`, `404`, `409`) | ✅ Implementado |
+| Autenticação (login) dos três perfis | ⏳ Previsto na modelagem |
+| Professores pré-cadastrados, saldo e crédito semestral | ⏳ Previsto na modelagem |
+| Envio de moedas e extrato | ⏳ Previsto na modelagem |
+| Vantagens, resgate e cupom | ⏳ Previsto na modelagem |
+| Envio de e-mails | ⏳ Previsto na modelagem |
 
 ## 👥 Atores
 
@@ -194,6 +213,8 @@ Front-end (Next.js)  ──HTTP/JSON──▶  Controller  ──▶  Service  �
 | **Repository** | `repository` | Acesso ao banco via Spring Data JPA |
 | **Model** | `model` | Entidades JPA mapeadas para as tabelas |
 | **DTO** | `dto` | Objetos de entrada e saída da API (a senha nunca é devolvida) |
+| **Validator** | `validator` | Validação dos dados de entrada antes das regras de negócio |
+| **Util** | `util` | Utilitários de validação e formatação (CPF e CNPJ) |
 | **Exception** | `exception` | Exceções de negócio e tratamento centralizado de erros |
 | **Config** | `config` | Configurações (codificador de senhas, CORS) |
 
@@ -204,29 +225,43 @@ Front-end (Next.js)  ──HTTP/JSON──▶  Controller  ──▶  Service  �
 - Os identificadores são `UUID`.
 - As senhas são armazenadas apenas como hash **BCrypt**.
 - Nesta fase, o esquema é atualizado automaticamente pelo Hibernate (`ddl-auto=update`). Quando o modelo ER estiver fechado, a ideia é migrar para `validate` com um script SQL versionado.
+
+**Tratamento de erros.** Todas as respostas de erro da API seguem o formato `{"erro": "mensagem"}`, produzido por um tratador centralizado (`TratadorDeExcecoes`):
+
+| Status | Quando ocorre |
+|---|---|
+| `400` | Dados inválidos, campo obrigatório ausente, JSON malformado ou id em formato inválido |
+| `404` | Registro não encontrado |
+| `409` | Login, e-mail, CNPJ ou CPF já cadastrado |
+
 ## 📁 Estrutura do Repositório
 
 ```
 sistema-moeda-estudantil/
 ├── backend/
-│   └── src/main/java/br/com/sistemamoedaestudantil/
-│       └── sistema_moeda_estudantil/
-│           ├── config/
-│           ├── controller/
-│           ├── dto/
-│           ├── exception/
-│           ├── model/
-│           ├── repository/
-│           └── service/
+│   ├── src/main/java/br/com/sistemamoedaestudantil/
+│   │   └── sistema_moeda_estudantil/
+│   │       ├── config/
+│   │       ├── controller/
+│   │       ├── dto/
+│   │       ├── exception/
+│   │       ├── model/
+│   │       ├── repository/
+│   │       ├── service/
+│   │       ├── util/
+│   │       └── validator/
+│   └── scripts/
+│       └── testar-empresas.sh
 ├── frontend/
 │   └── app/
+│       ├── componentes/
 │       ├── alunos/page.tsx
-│       └── empresas/page.tsx
+│       ├── empresas/page.tsx
+│       └── page.tsx
 ├── database/
 │   └── 03_alunos_instituicoes_cursos.sql
 ├── docs/
-│   ├── modelo_ER.drawio.png
-│   └── Lab03S03_Pessoa1/
+│   └── (diagramas UML e modelo ER)
 ├── tests/
 │   └── teste-api-alunos.ps1
 └── README.md
@@ -260,7 +295,19 @@ npm install
 npm run dev
 ```
 
-Com os dois em execução, acesse `http://localhost:3000/empresas`.
+Se o `mvnw` negar permissão no macOS ou Linux, execute `chmod +x mvnw` uma vez.
+
+**4. Instituições e cursos**
+
+As instituições e os cursos são pré-cadastrados. Depois da primeira execução do back-end (que cria as tabelas), carregue-os uma única vez:
+
+```bash
+mysql -u root -p moeda_estudantil < database/03_alunos_instituicoes_cursos.sql
+```
+
+Sem essa carga, a lista de instituições do cadastro de alunos fica vazia.
+
+Com tudo em execução, acesse `http://localhost:3000`.
 
 ### Executando no Windows (PowerShell)
 
@@ -289,7 +336,13 @@ $env:DB_PASSWORD="SUA_SENHA_MYSQL"
 .\mvnw.cmd spring-boot:run
 ```
 
-**3. Iniciar o front-end**
+**3. Carregar instituições e cursos** (uma única vez, depois da primeira execução do back-end)
+
+```powershell
+Get-Content .\database\03_alunos_instituicoes_cursos.sql | mysql -u root -p moeda_estudantil
+```
+
+**4. Iniciar o front-end**
 
 Em outro terminal, a partir da raiz do repositório:
 
@@ -299,7 +352,7 @@ npm install
 npm run dev
 ```
 
-**4. Acessar as interfaces**
+**5. Acessar as interfaces**
 
 - Alunos: http://localhost:3000/alunos
 - Empresas Parceiras: http://localhost:3000/empresas
@@ -311,11 +364,11 @@ Base: `/api/empresas-parceiras`
 
 | Método | Rota | Descrição | Respostas |
 |---|---|---|---|
-| `POST` | `/` | Cadastra uma empresa parceira | `201`, `409` |
+| `POST` | `/` | Cadastra uma empresa parceira | `201`, `400`, `409` |
 | `GET` | `/` | Lista as empresas cadastradas | `200` |
-| `GET` | `/{id}` | Busca uma empresa pelo id | `200`, `404` |
-| `PUT` | `/{id}` | Atualiza razão social, email e CNPJ | `200`, `404`, `409` |
-| `DELETE` | `/{id}` | Remove a empresa | `204`, `404` |
+| `GET` | `/{id}` | Busca uma empresa pelo id | `200`, `400`, `404` |
+| `PUT` | `/{id}` | Atualiza razão social, email e CNPJ | `200`, `400`, `404`, `409` |
+| `DELETE` | `/{id}` | Remove a empresa | `204`, `400`, `404` |
 
 Exemplo de cadastro:
 
@@ -323,13 +376,22 @@ Exemplo de cadastro:
 {
   "razaoSocial": "Restaurante Exemplo LTDA",
   "email": "contato@exemplo.com",
-  "cnpj": "12.345.678/0001-90",
+  "cnpj": "11.222.333/0001-81",
   "login": "restaurante",
   "senha": "senha123"
 }
 ```
 
-Login, CNPJ e email são únicos: duplicidades retornam `409` com `{"erro": "..."}`. A resposta nunca inclui a senha.
+### Regras de validação
+
+- Razão social obrigatória, com no máximo 150 caracteres.
+- E-mail obrigatório, em formato válido; é gravado em minúsculas.
+- CNPJ obrigatório e válido (dígitos verificadores conferidos); é aceito com ou sem máscara e gravado como `00.000.000/0000-00`.
+- Login de 3 a 50 caracteres: letras, números, ponto, hífen ou sublinhado.
+- Senha de 6 a 72 caracteres (limite do BCrypt), armazenada apenas como hash.
+- Login, CNPJ e e-mail são únicos: duplicidades retornam `409`, e dados inválidos retornam `400`, sempre com `{"erro": "..."}`.
+- A resposta nunca inclui a senha.
+- No front-end, o campo de CNPJ aplica a máscara automaticamente e limita a digitação a 14 dígitos.
 
 ## 🎓 API — Alunos
 
@@ -375,9 +437,11 @@ As instituições e os cursos são previamente cadastrados no banco de dados. Du
 ### Regras de validação
 
 - Todos os dados obrigatórios devem ser preenchidos.
-- O CPF deve conter 11 dígitos.
-- A senha deve possuir no mínimo 6 caracteres no cadastro.
-- Login, e-mail e CPF não podem estar duplicados.
+- O CPF deve ser válido (11 dígitos, com dígitos verificadores conferidos). No front-end, o campo aplica a máscara `000.000.000-00` e a API recebe apenas os números.
+- O login deve ter de 3 a 50 caracteres: letras, números, ponto, hífen ou sublinhado.
+- A senha deve ter de 6 a 72 caracteres no cadastro e, se informada, na edição.
+- O e-mail deve ter formato válido e é gravado em minúsculas.
+- Login, e-mail e CPF não podem estar duplicados (`409`).
 - O curso selecionado deve pertencer à instituição informada.
 - As senhas são armazenadas utilizando hash BCrypt e não são retornadas nas respostas da API.
 
@@ -399,6 +463,14 @@ Com o MySQL e o back-end em execução, o teste pode ser iniciado no PowerShell,
 
 O roteiro contempla cadastro, consulta, atualização e exclusão de aluno.
 
+Para o módulo de Empresas Parceiras, o script `backend/scripts/testar-empresas.sh` executa testes de integração contra a API e o MySQL em execução:
+
+```bash
+bash backend/scripts/testar-empresas.sh
+```
+
+São 41 verificações: cadastro (CNPJ com máscara, e-mail em minúsculas, hash BCrypt e herança `JOINED` no banco), consulta, duplicidades (`409`), validações (`400`), edição e exclusão. Os registros de teste (login `teste_auto...`) são removidos ao final. Se o MySQL tiver senha, defina `DB_USER` e `DB_PASSWORD` antes de executar.
+
 Também podem ser executados os comandos:
 
 **Back-end:**
@@ -415,31 +487,7 @@ cd frontend
 npm run build
 ```
 
-A realização desses testes deve ser confirmada antes da entrega final.
 
-## 📊 Apresentação da Lab03S03
-
-A Sprint Lab03S03 contempla a finalização dos CRUDs de Alunos e Empresas Parceiras, além da apresentação da arquitetura e da camada de persistência do sistema.
-
-A apresentação aborda:
-
-- Arquitetura em camadas e comunicação por API REST.
-- Organização em Controller, Service, Repository, Model e DTO.
-- Persistência com Spring Data JPA, Hibernate e MySQL.
-- Modelo Entidade-Relacionamento e cardinalidades.
-- Demonstração das operações CRUD.
-
-**Materiais da Pessoa 1:**
-
-- [Slides da apresentação](docs/Lab03S03_Pessoa1/apresentacao_yuri_Lab03S03.pptx)
-- [Roteiro de apresentação](docs/Lab03S03_Pessoa1/ROTEIRO_APRESENTACAO.md)
-- [Checklist da entrega](docs/Lab03S03_Pessoa1/CHECKLIST_ENTREGA.md)
-
-## 🚀 Status do Projeto
-
-- [x] Lab03S01 — Diagrama de Casos de Uso + Histórias de Usuário + Diagrama de Classes + Diagrama de Componentes
-- [x] Lab03S02 — Modelo ER (concluído), estratégia de acesso ao banco de dados e CRUDs de aluno e empresa parceira (em desenvolvimento)
-- [ ] Lab03S03 — CRUDs de aluno e empresa parceira (versão final) + apresentação da arquitetura e da camada de persistência
 
 ## ✍️ Autores
 
