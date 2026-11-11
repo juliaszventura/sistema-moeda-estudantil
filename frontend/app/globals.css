@@ -1,15 +1,28 @@
 @import "tailwindcss";
 
+@theme {
+  --color-marca-50: #f0f8f9;
+  --color-marca-100: #e5f1f3;
+  --color-marca-200: #cfe3e6;
+  --color-marca-300: #a8cfd5;
+  --color-marca-400: #6fb0ba;
+  --color-marca-500: #3f93a1;
+  --color-marca-600: #2f7d8a;
+  --color-marca-700: #256772;
+  --color-ouro-100: #fdf3d8;
+  --color-ouro-500: #d9a441;
+  --color-ouro-700: #7a5a12;
+}
+
 :root {
   color-scheme: light;
 }
 
 body {
-  background: #f8f7fc;
-  color: #1b1b2f;
+  background: #ffffff;
+  color: #17292d;
   font-family: var(--font-geist-sans, system-ui), system-ui, sans-serif;
 }
-
 
 button:not(:disabled),
 select:not(:disabled),

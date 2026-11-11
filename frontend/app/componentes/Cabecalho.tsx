@@ -5,14 +5,16 @@ const links = [
     { href: "/", rotulo: "Início", chave: "inicio" },
     { href: "/alunos", rotulo: "Alunos", chave: "alunos" },
     { href: "/empresas", rotulo: "Empresas", chave: "empresas" },
+    { href: "/vantagens", rotulo: "Vantagens", chave: "vantagens" },
+    { href: "/extrato", rotulo: "Extrato", chave: "extrato" },
 ];
 
 export default function Cabecalho({ ativo }: { ativo: string }) {
     return (
-        <header className="border-b border-violet-100 bg-white">
+        <header className="border-b border-slate-100 bg-white">
             <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-4">
                 <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-marca-600 text-white shadow-sm">
             <Icone nome="moedas" className="h-5 w-5" />
           </span>
                     <span className="text-base font-bold text-slate-900">Moeda Estudantil</span>
@@ -24,8 +26,8 @@ export default function Cabecalho({ ativo }: { ativo: string }) {
                             href={link.href}
                             className={
                                 link.chave === ativo
-                                    ? "rounded-lg bg-violet-50 px-3 py-1.5 text-violet-700"
-                                    : "rounded-lg px-3 py-1.5 text-slate-600 transition hover:bg-slate-50 hover:text-violet-700"
+                                    ? "rounded-lg bg-marca-50 px-3 py-1.5 text-marca-700"
+                                    : "rounded-lg px-3 py-1.5 text-slate-600 transition hover:bg-slate-50 hover:text-marca-700"
                             }
                         >
                             {link.rotulo}
