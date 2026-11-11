@@ -49,4 +49,8 @@ public abstract class Usuario {
     public void setSenhaHash(String senhaHash) {
         this.senhaHash = senhaHash;
     }
+
+    public String getNomeExibicao() {
+        return login;
+    }
 }
