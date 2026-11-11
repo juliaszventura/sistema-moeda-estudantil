@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import Aviso from "../../componentes/Aviso";
 import Cabecalho from "../../componentes/Cabecalho";
 import Icone from "../../componentes/Icone";
+import Toast from "../../componentes/Toast";
 import { api, estiloCampo } from "../../lib/api";
 
 type EmpresaResumo = { id: string; razaoSocial: string };
@@ -61,12 +61,12 @@ export default function GerenciarVantagensPage() {
   useEffect(() => {
     let ativo = true;
     api<EmpresaResumo[]>("/empresas-parceiras")
-      .then((dados) => {
-        if (ativo) setEmpresas(dados);
-      })
-      .catch((e: Error) => {
-        if (ativo) setErro(e.message);
-      });
+        .then((dados) => {
+          if (ativo) setEmpresas(dados);
+        })
+        .catch((e: Error) => {
+          if (ativo) setErro(e.message);
+        });
     return () => {
       ativo = false;
     };
@@ -76,18 +76,23 @@ export default function GerenciarVantagensPage() {
     if (!empresaId) return;
     let ativo = true;
     api<Vantagem[]>(`/empresas-parceiras/${empresaId}/vantagens`)
-      .then((dados) => {
-        if (ativo) setVantagens(dados);
-      })
-      .catch((e: Error) => {
-        if (ativo) setErro(e.message);
-      });
+        .then((dados) => {
+          if (ativo) setVantagens(dados);
+        })
+        .catch((e: Error) => {
+          if (ativo) setErro(e.message);
+        });
     return () => {
       ativo = false;
     };
   }, [empresaId, versao]);
 
   const visiveis = empresaId ? vantagens : [];
+
+  function focarCampo(id: string) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById(id)?.focus({ preventScroll: true });
+  }
 
   function cancelar() {
     setForm(vazio);
@@ -172,216 +177,246 @@ export default function GerenciarVantagensPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Cabecalho ativo="vantagens" />
-      <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10">
-        <form onSubmit={enviar} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex flex-wrap items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+      <div className="flex-1">
+        <Cabecalho ativo="vantagens" />
+        <Toast tipo="erro" mensagem={erro} onFechar={() => setErro("")} />
+        <Toast tipo="sucesso" mensagem={sucesso} onFechar={() => setSucesso("")} />
+        <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10">
+          <form onSubmit={enviar} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-5 flex flex-wrap items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-marca-50 text-marca-600">
               <Icone nome={editandoId ? "editar" : "vantagem"} className="h-5 w-5" />
             </span>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900">
-                {editandoId ? "Editar vantagem" : "Nova vantagem"}
-              </h1>
-              <p className="text-sm text-slate-500">Escolha a empresa e cadastre o produto com foto e custo em moedas.</p>
-            </div>
-            <Link
-              href="/vantagens"
-              className="ml-auto rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700"
-            >
-              Ver catálogo
-            </Link>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="lg:col-span-2">
-              <label htmlFor="empresa" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Empresa parceira
-              </label>
-              <select
-                id="empresa"
-                className={estiloCampo}
-                value={empresaId}
-                onChange={(e) => escolherEmpresa(e.target.value)}
-                disabled={Boolean(editandoId)}
-                required
+              <div>
+                <h1 className="text-lg font-semibold text-slate-900">
+                  {editandoId ? "Editar vantagem" : "Nova vantagem"}
+                </h1>
+                <p className="text-sm text-slate-500">Escolha a empresa e cadastre o produto com foto e custo em moedas.</p>
+              </div>
+              <Link
+                  href="/vantagens"
+                  className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-marca-300 hover:bg-marca-50 hover:text-marca-700"
               >
-                <option value="">Selecione a empresa</option>
-                {empresas.map((empresa) => (
-                  <option key={empresa.id} value={empresa.id}>
-                    {empresa.razaoSocial}
-                  </option>
-                ))}
-              </select>
+                Ver catálogo
+              </Link>
             </div>
-            <div className="lg:col-span-2">
-              <label htmlFor="nome" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Nome da vantagem
-              </label>
-              <input
-                id="nome"
-                className={estiloCampo}
-                placeholder="Desconto de 20% no almoço"
-                minLength={3}
-                maxLength={120}
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                required
-              />
-            </div>
-            <div className="lg:col-span-3">
-              <label htmlFor="descricao" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Descrição
-              </label>
-              <input
-                id="descricao"
-                className={estiloCampo}
-                placeholder="Válido de segunda a sexta no restaurante da universidade"
-                maxLength={500}
-                value={form.descricao}
-                onChange={(e) => setForm({ ...form, descricao: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="custo" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Custo (moedas)
-              </label>
-              <input
-                id="custo"
-                className={estiloCampo}
-                type="number"
-                min={1}
-                max={100000}
-                placeholder="50"
-                value={form.custoMoedas}
-                onChange={(e) => setForm({ ...form, custoMoedas: e.target.value })}
-                required
-              />
-            </div>
-            <div className="md:col-span-2 lg:col-span-4">
-              <label htmlFor="foto" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Foto do produto
-              </label>
-              <div className="flex flex-wrap items-center gap-4">
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="lg:col-span-2">
+                <label htmlFor="empresa" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Empresa parceira
+                </label>
+                <select
+                    id="empresa"
+                    className={estiloCampo}
+                    value={empresaId}
+                    onChange={(e) => escolherEmpresa(e.target.value)}
+                    disabled={Boolean(editandoId)}
+                    required
+                >
+                  <option value="">Selecione a empresa</option>
+                  {empresas.map((empresa) => (
+                      <option key={empresa.id} value={empresa.id}>
+                        {empresa.razaoSocial}
+                      </option>
+                  ))}
+                </select>
+              </div>
+              <div className="lg:col-span-2">
+                <label htmlFor="nome" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Nome da vantagem
+                </label>
                 <input
-                  id="foto"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => void escolherFoto(e)}
-                  className="text-sm text-slate-600 file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-violet-700 hover:file:bg-violet-100"
+                    id="nome"
+                    className={estiloCampo}
+                    placeholder="Desconto de 20% no almoço"
+                    minLength={3}
+                    maxLength={120}
+                    value={form.nome}
+                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                    required
                 />
-                {form.foto ? (
-                  <Image
-                    src={form.foto}
-                    alt="Pré-visualização da foto"
-                    width={120}
-                    height={80}
-                    unoptimized
-                    className="h-20 w-28 rounded-xl border border-slate-200 object-cover"
+              </div>
+              <div className="lg:col-span-3">
+                <label htmlFor="descricao" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Descrição
+                </label>
+                <input
+                    id="descricao"
+                    className={estiloCampo}
+                    placeholder="Válido de segunda a sexta no restaurante da universidade"
+                    maxLength={500}
+                    value={form.descricao}
+                    onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+                    required
+                />
+              </div>
+              <div>
+                <label htmlFor="custo" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Custo (moedas)
+                </label>
+                <input
+                    id="custo"
+                    className={estiloCampo}
+                    type="number"
+                    min={1}
+                    max={100000}
+                    placeholder="50"
+                    value={form.custoMoedas}
+                    onChange={(e) => setForm({ ...form, custoMoedas: e.target.value })}
+                    required
+                />
+              </div>
+              <div className="md:col-span-2 lg:col-span-4">
+                <label htmlFor="foto" className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Foto do produto
+                </label>
+                <div className="flex flex-wrap items-center gap-4">
+                  <input
+                      id="foto"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => void escolherFoto(e)}
+                      className="text-sm text-slate-600 file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:bg-marca-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-marca-700 hover:file:bg-marca-100"
                   />
-                ) : (
-                  <span className="flex items-center gap-2 text-sm text-slate-400">
+                  {form.foto ? (
+                      <Image
+                          src={form.foto}
+                          alt="Pré-visualização da foto"
+                          width={120}
+                          height={80}
+                          unoptimized
+                          className="h-20 w-28 rounded-xl border border-slate-200 object-cover"
+                      />
+                  ) : (
+                      <span className="flex items-center gap-2 text-sm text-slate-400">
                     <Icone nome="foto" className="h-4 w-4" />
                     Nenhuma foto selecionada
                   </span>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {erro && (
-            <div className="mt-5">
-              <Aviso tipo="erro">{erro}</Aviso>
-            </div>
-          )}
-          {sucesso && (
-            <div className="mt-5">
-              <Aviso tipo="sucesso">{sucesso}</Aviso>
-            </div>
-          )}
-
-          <div className="mt-6 flex flex-wrap justify-end gap-3">
-            {editandoId && (
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              {editandoId && (
+                  <button
+                      type="button"
+                      onClick={cancelar}
+                      className="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-marca-300 hover:bg-marca-50 hover:text-marca-700"
+                  >
+                    Cancelar edição
+                  </button>
+              )}
               <button
-                type="button"
-                onClick={cancelar}
-                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  type="submit"
+                  disabled={ocupado || !form.foto}
+                  className="rounded-full bg-marca-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700 active:scale-[0.98] disabled:opacity-60"
               >
-                Cancelar edição
+                {ocupado ? "Salvando..." : editandoId ? "Salvar alterações" : "Cadastrar vantagem"}
               </button>
-            )}
-            <button
-              type="submit"
-              disabled={ocupado || !form.foto}
-              className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 active:scale-[0.98] disabled:opacity-60"
-            >
-              {ocupado ? "Salvando..." : editandoId ? "Salvar alterações" : "Cadastrar vantagem"}
-            </button>
-          </div>
-        </form>
+            </div>
+          </form>
 
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Vantagens da empresa</h2>
-            <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900">Vantagens da empresa</h2>
+              <span className="rounded-full bg-marca-50 px-3 py-1 text-xs font-semibold text-marca-700">
               {visiveis.length}
             </span>
-          </div>
-          {visiveis.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center text-sm text-slate-500">
-              {empresaId ? "Esta empresa ainda não cadastrou vantagens." : "Selecione uma empresa para ver as vantagens."}
             </div>
-          ) : (
-            <ul className="grid gap-4 md:grid-cols-2">
-              {visiveis.map((vantagem) => (
-                <li
-                  key={vantagem.id}
-                  className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-violet-200 hover:shadow-md"
-                >
-                  <Image
-                    src={vantagem.foto}
-                    alt={vantagem.nome}
-                    width={96}
-                    height={96}
-                    unoptimized
-                    className="h-24 w-24 shrink-0 rounded-xl object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-slate-900">{vantagem.nome}</p>
-                    <p className="line-clamp-2 text-sm text-slate-500">{vantagem.descricao}</p>
-                    <span className="mt-1.5 inline-block rounded-md bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
+            {visiveis.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-marca-50 text-marca-600">
+                    <Icone nome={empresaId ? "vantagem" : "empresa"} className="h-6 w-6" />
+                  </span>
+                  <p className="font-medium text-slate-700">
+                    {empresaId ? "Nenhuma vantagem cadastrada" : "Nenhuma empresa selecionada"}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {empresaId
+                        ? "Esta empresa ainda não cadastrou vantagens."
+                        : empresas.length === 0
+                            ? "Cadastre uma empresa parceira antes de criar vantagens."
+                            : "Selecione uma empresa para ver as vantagens."}
+                  </p>
+                  {empresaId ? (
+                      <button
+                          type="button"
+                          onClick={() => focarCampo("nome")}
+                          className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
+                      >
+                        <Icone nome="mais" className="h-4 w-4" />
+                        Cadastrar a primeira vantagem
+                      </button>
+                  ) : empresas.length === 0 ? (
+                      <Link
+                          href="/empresas"
+                          className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
+                      >
+                        <Icone nome="mais" className="h-4 w-4" />
+                        Cadastrar uma empresa parceira
+                      </Link>
+                  ) : (
+                      <button
+                          type="button"
+                          onClick={() => focarCampo("empresa")}
+                          className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
+                      >
+                        Escolher uma empresa
+                        <Icone nome="seta" className="h-4 w-4" />
+                      </button>
+                  )}
+                </div>
+            ) : (
+                <ul className="grid gap-4 md:grid-cols-2">
+                  {visiveis.map((vantagem) => (
+                      <li
+                          key={vantagem.id}
+                          className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-marca-300 hover:shadow-md"
+                      >
+                        <Image
+                            src={vantagem.foto}
+                            alt={vantagem.nome}
+                            width={96}
+                            height={96}
+                            unoptimized
+                            className="h-24 w-24 shrink-0 rounded-xl object-cover"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-slate-900">{vantagem.nome}</p>
+                          <p className="line-clamp-2 text-sm text-slate-500">{vantagem.descricao}</p>
+                          <span className="mt-1.5 inline-block rounded-md bg-ouro-100 px-2 py-0.5 text-xs font-semibold text-ouro-700">
                       {vantagem.custoMoedas} moedas
                     </span>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      aria-label={`Editar ${vantagem.nome}`}
-                      title="Editar"
-                      onClick={() => editar(vantagem)}
-                      className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700"
-                    >
-                      <Icone nome="editar" className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Excluir ${vantagem.nome}`}
-                      title="Excluir"
-                      disabled={ocupado}
-                      onClick={() => void excluir(vantagem)}
-                      className="rounded-lg border border-slate-200 p-2 text-red-600 transition hover:border-red-200 hover:bg-red-50 disabled:opacity-60"
-                    >
-                      <Icone nome="excluir" className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </main>
-    </div>
+                        </div>
+                        <div className="flex shrink-0 gap-2">
+                          <button
+                              type="button"
+                              aria-label={`Editar ${vantagem.nome}`}
+                              title="Editar"
+                              onClick={() => editar(vantagem)}
+                              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-marca-300 hover:bg-marca-50 hover:text-marca-700"
+                          >
+                            <Icone nome="editar" className="h-4 w-4" />
+                          </button>
+                          <button
+                              type="button"
+                              aria-label={`Excluir ${vantagem.nome}`}
+                              title="Excluir"
+                              disabled={ocupado}
+                              onClick={() => void excluir(vantagem)}
+                              className="rounded-lg border border-slate-200 p-2 text-red-600 transition hover:border-red-200 hover:bg-red-50 disabled:opacity-60"
+                          >
+                            <Icone nome="excluir" className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </li>
+                  ))}
+                </ul>
+            )}
+          </section>
+        </main>
+      </div>
   );
 }
