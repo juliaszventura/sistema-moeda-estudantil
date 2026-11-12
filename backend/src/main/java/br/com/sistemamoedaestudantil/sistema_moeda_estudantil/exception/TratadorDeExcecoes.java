@@ -25,6 +25,11 @@ public class TratadorDeExcecoes {
         return resposta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(NaoAutenticadoException.class)
+    public ResponseEntity<Map<String, String>> tratarNaoAutenticado(NaoAutenticadoException ex) {
+        return resposta(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<Map<String, String>> tratarNaoEncontrado(RecursoNaoEncontradoException ex) {
         return resposta(HttpStatus.NOT_FOUND, ex.getMessage());

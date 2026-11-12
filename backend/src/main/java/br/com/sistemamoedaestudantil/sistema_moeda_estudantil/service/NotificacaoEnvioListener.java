@@ -1,6 +1,7 @@
 package br.com.sistemamoedaestudantil.sistema_moeda_estudantil.service;
 
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.evento.EnvioMoedasEvento;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,10 +20,11 @@ public class NotificacaoEnvioListener {
         emailService.enviar(
                 evento.alunoEmail(),
                 "Você recebeu " + evento.valor() + " moedas",
-                "Olá, " + evento.alunoNome() + "!\n\n"
-                        + "O professor " + evento.professorNome() + " reconheceu você com "
-                        + evento.valor() + " moedas.\n\n"
-                        + "Motivo: " + evento.motivo() + "\n\n"
-                        + "Acesse o sistema para ver seu saldo e trocar por vantagens.");
+                EmailModelo.de(
+                        "Você recebeu " + evento.valor() + " moedas",
+                        "Olá, " + evento.alunoNome() + "!",
+                        List.of("O professor " + evento.professorNome() + " reconheceu você com " + evento.valor() + " moedas.",
+                                "Motivo: " + evento.motivo(),
+                                "Acesse o sistema para ver seu saldo e trocar suas moedas por vantagens.")));
     }
 }

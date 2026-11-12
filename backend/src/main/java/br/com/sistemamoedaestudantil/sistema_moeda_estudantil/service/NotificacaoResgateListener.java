@@ -1,6 +1,7 @@
 package br.com.sistemamoedaestudantil.sistema_moeda_estudantil.service;
 
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.evento.ResgateRealizadoEvento;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,16 +20,22 @@ public class NotificacaoResgateListener {
         emailService.enviar(
                 evento.alunoEmail(),
                 "Seu cupom: " + evento.vantagem(),
-                "Olá, " + evento.alunoNome() + "!\n\n"
-                        + "Você resgatou \"" + evento.vantagem() + "\" de " + evento.empresaNome()
-                        + " por " + evento.custoMoedas() + " moedas.\n\n"
-                        + "Código do cupom: " + evento.codigo() + "\n\n"
-                        + "Apresente este código na empresa parceira para concluir a troca presencial.");
+                EmailModelo.de(
+                        "Seu cupom está pronto",
+                        "Olá, " + evento.alunoNome() + "!",
+                        List.of("Você resgatou \"" + evento.vantagem() + "\" de " + evento.empresaNome()
+                                        + " por " + evento.custoMoedas() + " moedas.",
+                                "Apresente o código abaixo na empresa parceira para concluir a troca presencial."))
+                        .comDestaque("Código do cupom", evento.codigo()));
         emailService.enviar(
                 evento.empresaEmail(),
                 "Novo resgate: " + evento.vantagem(),
-                "O aluno " + evento.alunoNome() + " resgatou \"" + evento.vantagem() + "\" por "
-                        + evento.custoMoedas() + " moedas.\n\n"
-                        + "Código para conferência: " + evento.codigo());
+                EmailModelo.de(
+                        "Novo resgate de vantagem",
+                        "Olá, " + evento.empresaNome() + "!",
+                        List.of("O aluno " + evento.alunoNome() + " resgatou \"" + evento.vantagem() + "\" por "
+                                        + evento.custoMoedas() + " moedas.",
+                                "Use o código abaixo para conferir o cupom quando o aluno for retirar a vantagem."))
+                        .comDestaque("Código para conferência", evento.codigo()));
     }
 }
