@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import Cabecalho from "../componentes/Cabecalho";
 import CartaoSaldo from "../componentes/CartaoSaldo";
 import Icone from "../componentes/Icone";
 import Toast from "../componentes/Toast";
-import { api, estiloCampo, formatarDataHora } from "../lib/api";
+import { api, formatarDataHora } from "../lib/api";
+import { useSessaoExigida } from "../lib/sessao";
 
 type Vantagem = {
   id: string;
@@ -17,7 +17,6 @@ type Vantagem = {
   custoMoedas: number;
   foto: string;
 };
-type AlunoResumo = { id: string; nome: string };
 type Extrato = { saldoMoedas: number };
 type Resgate = {
   codigo: string;
@@ -87,8 +86,8 @@ function CartaoCupom({ resgate }: { resgate: Resgate }) {
 
 export default function VantagensPage() {
   const [vantagens, setVantagens] = useState<Vantagem[]>([]);
-  const [alunos, setAlunos] = useState<AlunoResumo[]>([]);
-  const [alunoId, setAlunoId] = useState("");
+  const sessao = useSessaoExigida("ALUNO");
+  const alunoId = sessao?.id;
   const [saldo, setSaldo] = useState<number | null>(null);
   const [resgate, setResgate] = useState<Resgate | null>(null);
   const [erro, setErro] = useState("");
@@ -96,12 +95,13 @@ export default function VantagensPage() {
   const [ocupado, setOcupado] = useState(false);
 
   useEffect(() => {
+    if (!alunoId) return;
     let ativo = true;
-    Promise.all([api<Vantagem[]>("/vantagens"), api<AlunoResumo[]>("/alunos")])
-        .then(([v, a]) => {
+    Promise.all([api<Vantagem[]>("/vantagens"), api<Extrato>(`/alunos/${alunoId}/extrato`)])
+        .then(([v, e]) => {
           if (!ativo) return;
           setVantagens(v);
-          setAlunos(a);
+          setSaldo(e.saldoMoedas);
         })
         .catch((e: Error) => {
           if (ativo) setErro(e.message);
@@ -112,27 +112,10 @@ export default function VantagensPage() {
     return () => {
       ativo = false;
     };
-  }, []);
-
-  async function escolherAluno(id: string) {
-    setAlunoId(id);
-    setResgate(null);
-    setErro("");
-    setSaldo(null);
-    if (!id) return;
-    try {
-      const extrato = await api<Extrato>(`/alunos/${id}/extrato`);
-      setSaldo(extrato.saldoMoedas);
-    } catch (e) {
-      setErro((e as Error).message);
-    }
-  }
+  }, [alunoId]);
 
   async function resgatar(vantagem: Vantagem) {
-    if (!alunoId) {
-      setErro("Selecione o aluno que vai resgatar a vantagem.");
-      return;
-    }
+    if (!alunoId) return;
     if (!window.confirm(`Resgatar "${vantagem.nome}" por ${vantagem.custoMoedas} moedas?`)) return;
     setErro("");
     setResgate(null);
@@ -151,6 +134,8 @@ export default function VantagensPage() {
     }
   }
 
+  if (!sessao) return null;
+
   return (
       <div className="flex-1">
         <Cabecalho ativo="vantagens" />
@@ -163,36 +148,12 @@ export default function VantagensPage() {
             </span>
               <div>
                 <h1 className="text-lg font-semibold text-slate-900">Catálogo de vantagens</h1>
-                <p className="text-sm text-slate-500">Escolha quem vai resgatar e troque moedas por vantagens.</p>
+                <p className="text-sm text-slate-500">Troque suas moedas por produtos e descontos.</p>
               </div>
-              <Link
-                  href="/vantagens/gerenciar"
-                  className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-marca-300 hover:bg-marca-50 hover:text-marca-700"
-              >
-                Gerenciar vantagens (empresas)
-              </Link>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="flex flex-col justify-end md:col-span-2">
-                <label htmlFor="aluno" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Aluno
-                </label>
-                <select
-                    id="aluno"
-                    className={estiloCampo}
-                    value={alunoId}
-                    onChange={(e) => void escolherAluno(e.target.value)}
-                >
-                  <option value="">Selecione o aluno</option>
-                  {alunos.map((aluno) => (
-                      <option key={aluno.id} value={aluno.id}>
-                        {aluno.nome}
-                      </option>
-                  ))}
-                </select>
-              </div>
-              <CartaoSaldo rotulo="Saldo" saldo={saldo} />
+            <div className="max-w-sm">
+              <CartaoSaldo rotulo="Meu saldo" saldo={saldo} />
             </div>
 
             {resgate && <CartaoCupom key={resgate.codigo} resgate={resgate} />}
@@ -216,14 +177,7 @@ export default function VantagensPage() {
                 <Icone nome="vantagem" className="h-6 w-6" />
               </span>
                   <p className="font-medium text-slate-700">Nenhuma vantagem cadastrada</p>
-                  <p className="text-sm text-slate-500">As empresas parceiras cadastram as vantagens em Gerenciar vantagens.</p>
-                  <Link
-                      href="/vantagens/gerenciar"
-                      className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
-                  >
-                    <Icone nome="mais" className="h-4 w-4" />
-                    Cadastrar a primeira vantagem
-                  </Link>
+                  <p className="text-sm text-slate-500">As empresas parceiras ainda não cadastraram vantagens.</p>
                 </div>
             ) : (
                 <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

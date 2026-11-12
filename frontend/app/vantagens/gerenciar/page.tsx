@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Cabecalho from "../../componentes/Cabecalho";
 import Icone from "../../componentes/Icone";
 import Toast from "../../componentes/Toast";
 import { api, estiloCampo } from "../../lib/api";
+import { useSessaoExigida } from "../../lib/sessao";
 
-type EmpresaResumo = { id: string; razaoSocial: string };
 type Vantagem = {
   id: string;
   nome: string;
@@ -48,8 +47,8 @@ function reduzirImagem(arquivo: File): Promise<string> {
 }
 
 export default function GerenciarVantagensPage() {
-  const [empresas, setEmpresas] = useState<EmpresaResumo[]>([]);
-  const [empresaId, setEmpresaId] = useState("");
+  const sessao = useSessaoExigida("EMPRESA");
+  const empresaId = sessao?.id;
   const [vantagens, setVantagens] = useState<Vantagem[]>([]);
   const [form, setForm] = useState<Form>(vazio);
   const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -57,20 +56,6 @@ export default function GerenciarVantagensPage() {
   const [sucesso, setSucesso] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [versao, setVersao] = useState(0);
-
-  useEffect(() => {
-    let ativo = true;
-    api<EmpresaResumo[]>("/empresas-parceiras")
-        .then((dados) => {
-          if (ativo) setEmpresas(dados);
-        })
-        .catch((e: Error) => {
-          if (ativo) setErro(e.message);
-        });
-    return () => {
-      ativo = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (!empresaId) return;
@@ -87,8 +72,6 @@ export default function GerenciarVantagensPage() {
     };
   }, [empresaId, versao]);
 
-  const visiveis = empresaId ? vantagens : [];
-
   function focarCampo(id: string) {
     window.scrollTo({ top: 0, behavior: "smooth" });
     document.getElementById(id)?.focus({ preventScroll: true });
@@ -98,13 +81,6 @@ export default function GerenciarVantagensPage() {
     setForm(vazio);
     setEditandoId(null);
     setErro("");
-  }
-
-  function escolherEmpresa(id: string) {
-    setEmpresaId(id);
-    setVantagens([]);
-    cancelar();
-    setSucesso("");
   }
 
   async function escolherFoto(e: ChangeEvent<HTMLInputElement>) {
@@ -176,9 +152,11 @@ export default function GerenciarVantagensPage() {
     }
   }
 
+  if (!sessao) return null;
+
   return (
       <div className="flex-1">
-        <Cabecalho ativo="vantagens" />
+        <Cabecalho ativo="gerenciar" />
         <Toast tipo="erro" mensagem={erro} onFechar={() => setErro("")} />
         <Toast tipo="sucesso" mensagem={sucesso} onFechar={() => setSucesso("")} />
         <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10">
@@ -191,37 +169,11 @@ export default function GerenciarVantagensPage() {
                 <h1 className="text-lg font-semibold text-slate-900">
                   {editandoId ? "Editar vantagem" : "Nova vantagem"}
                 </h1>
-                <p className="text-sm text-slate-500">Escolha a empresa e cadastre o produto com foto e custo em moedas.</p>
+                <p className="text-sm text-slate-500">Cadastre o produto com descrição, foto e custo em moedas.</p>
               </div>
-              <Link
-                  href="/vantagens"
-                  className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-marca-300 hover:bg-marca-50 hover:text-marca-700"
-              >
-                Ver catálogo
-              </Link>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="lg:col-span-2">
-                <label htmlFor="empresa" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Empresa parceira
-                </label>
-                <select
-                    id="empresa"
-                    className={estiloCampo}
-                    value={empresaId}
-                    onChange={(e) => escolherEmpresa(e.target.value)}
-                    disabled={Boolean(editandoId)}
-                    required
-                >
-                  <option value="">Selecione a empresa</option>
-                  {empresas.map((empresa) => (
-                      <option key={empresa.id} value={empresa.id}>
-                        {empresa.razaoSocial}
-                      </option>
-                  ))}
-                </select>
-              </div>
               <div className="lg:col-span-2">
                 <label htmlFor="nome" className="mb-1.5 block text-sm font-medium text-slate-700">
                   Nome da vantagem
@@ -322,55 +274,28 @@ export default function GerenciarVantagensPage() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Vantagens da empresa</h2>
               <span className="rounded-full bg-marca-50 px-3 py-1 text-xs font-semibold text-marca-700">
-              {visiveis.length}
+              {vantagens.length}
             </span>
             </div>
-            {visiveis.length === 0 ? (
+            {vantagens.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-10 text-center">
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-marca-50 text-marca-600">
-                    <Icone nome={empresaId ? "vantagem" : "empresa"} className="h-6 w-6" />
+                    <Icone nome="vantagem" className="h-6 w-6" />
                   </span>
-                  <p className="font-medium text-slate-700">
-                    {empresaId ? "Nenhuma vantagem cadastrada" : "Nenhuma empresa selecionada"}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    {empresaId
-                        ? "Esta empresa ainda não cadastrou vantagens."
-                        : empresas.length === 0
-                            ? "Cadastre uma empresa parceira antes de criar vantagens."
-                            : "Selecione uma empresa para ver as vantagens."}
-                  </p>
-                  {empresaId ? (
-                      <button
-                          type="button"
-                          onClick={() => focarCampo("nome")}
-                          className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
-                      >
-                        <Icone nome="mais" className="h-4 w-4" />
-                        Cadastrar a primeira vantagem
-                      </button>
-                  ) : empresas.length === 0 ? (
-                      <Link
-                          href="/empresas"
-                          className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
-                      >
-                        <Icone nome="mais" className="h-4 w-4" />
-                        Cadastrar uma empresa parceira
-                      </Link>
-                  ) : (
-                      <button
-                          type="button"
-                          onClick={() => focarCampo("empresa")}
-                          className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
-                      >
-                        Escolher uma empresa
-                        <Icone nome="seta" className="h-4 w-4" />
-                      </button>
-                  )}
+                  <p className="font-medium text-slate-700">Nenhuma vantagem cadastrada</p>
+                  <p className="text-sm text-slate-500">Sua empresa ainda não cadastrou vantagens.</p>
+                  <button
+                      type="button"
+                      onClick={() => focarCampo("nome")}
+                      className="mt-3 inline-flex items-center gap-2 rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-marca-700"
+                  >
+                    <Icone nome="mais" className="h-4 w-4" />
+                    Cadastrar a primeira vantagem
+                  </button>
                 </div>
             ) : (
                 <ul className="grid gap-4 md:grid-cols-2">
-                  {visiveis.map((vantagem) => (
+                  {vantagens.map((vantagem) => (
                       <li
                           key={vantagem.id}
                           className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-marca-300 hover:shadow-md"
