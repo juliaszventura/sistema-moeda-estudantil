@@ -2,7 +2,7 @@
 
 Sistema para estimular o reconhecimento do mérito estudantil por meio de uma moeda virtual: professores distribuem moedas aos alunos como reconhecimento, e os alunos trocam essas moedas por produtos e descontos oferecidos por empresas parceiras.
 
-> 📚 Projeto desenvolvido para a disciplina **Laboratório de Projeto de Software** — PUC Minas, Laboratório 3, 2º semestre/2026
+> 📚 Projeto desenvolvido para a disciplina **Laboratório de Projeto de Software** — PUC Minas, Laboratório 3 e 4, 2º semestre/2026
 >
 > 👩‍🏫 Profa. Milena Menezes Adão
 
@@ -21,7 +21,13 @@ Sistema para estimular o reconhecimento do mérito estudantil por meio de uma mo
 - [🧩 Diagrama de Classes](#-diagrama-de-classes)
 - [🗄️ Modelo Entidade-Relacionamento (ER)](#️-modelo-entidade-relacionamento-er)
 - [🏗️ Diagrama de Componentes](#️-diagrama-de-componentes)
+- [🔄 Diagramas de Sequência](#-diagramas-de-sequência)
+- [🧭 Diagrama de Visão Geral de Interação](#-diagrama-de-visão-geral-de-interação)
 - [🎓 API — Alunos](#-api--alunos)
+- [🔐 API — Autenticação e Perfil](#-api--autenticação-e-perfil)
+- [👩‍🏫 API — Professores](#-api--professores)
+- [🎁 API — Vantagens, Resgate e Extrato](#-api--vantagens-resgate-e-extrato)
+- [✉️ Envio de e-mails](#️-envio-de-e-mails)
 - [🧪 Testes da Lab03S03](#-testes-da-lab03s03)
 - [📊 Apresentação da Lab03S03](#-apresentação-da-lab03s03)
 - [🚀 Status do Projeto](#-status-do-projeto)
@@ -61,11 +67,17 @@ A modelagem (casos de uso, classes, ER e componentes) cobre o sistema completo. 
 | Validação de CPF, CNPJ, e-mail, login e senha | ✅ Implementado |
 | Senhas armazenadas com hash BCrypt | ✅ Implementado |
 | Tratamento padronizado de erros da API (`400`, `404`, `409`) | ✅ Implementado |
-| Autenticação (login) dos três perfis | ⏳ Previsto na modelagem |
-| Professores pré-cadastrados, saldo e crédito semestral | ⏳ Previsto na modelagem |
-| Envio de moedas e extrato | ⏳ Previsto na modelagem |
-| Vantagens, resgate e cupom | ⏳ Previsto na modelagem |
-| Envio de e-mails | ⏳ Previsto na modelagem |
+| Autenticação (login) dos três perfis | ✅ Implementado (Lab04S01) |
+| Tela "Meu perfil": edição de dados e troca de senha | ✅ Implementado (Lab04S01) |
+| Professores pré-cadastrados, saldo e crédito semestral | ✅ Implementado (Lab04S01) |
+| Envio de moedas com motivo obrigatório e extrato do professor | ✅ Implementado (Lab04S01) |
+| Vantagens (descrição, foto e custo) cadastradas pela empresa | ✅ Implementado (Lab04S01) |
+| Resgate de vantagem com código de cupom | ✅ Implementado (Lab04S01) |
+| Extrato do aluno (recebimentos e trocas) | ✅ Implementado (Lab04S01) |
+| Envio de e-mails (moedas recebidas, cupom e conferência) | ✅ Implementado (Lab04S01) |
+| Diagramas de sequência e Diagrama de Visão Geral de Interação | ✅ Entregue (Lab04S01) |
+| Proteção dos endpoints por token (JWT) | ⏳ Planejado: hoje o login identifica o perfil, mas a API não exige token |
+| Diagrama de implantação e deploy na nuvem | ⏳ Lab04S02 |
 
 ## 👥 Atores
 
@@ -186,13 +198,33 @@ dos relacionamentos.
 
 ![Diagrama de Componentes](docs/diagrama_componentes_mvc.jpg)
 
+## 🔄 Diagramas de Sequência
+
+Diagramas UML em preto e branco, com fonte Mermaid (`.mmd`) e imagens `.svg` e `.png` na pasta [`docs/diagramas-sequencia`](docs/diagramas-sequencia).
+
+| Caso de uso | Diagrama |
+|---|---|
+| Cadastrar vantagem | ![Cadastrar vantagem](docs/diagramas-sequencia/01-cadastrar-vantagem.png) |
+| Resgatar vantagem | ![Resgatar vantagem](docs/diagramas-sequencia/02-resgatar-vantagem.png) |
+| Consultar extrato do aluno | ![Consultar extrato do aluno](docs/diagramas-sequencia/03-consultar-extrato-aluno.png) |
+| Cadastrar empresa parceira | ![Cadastrar empresa parceira](docs/diagramas-sequencia/04-cadastrar-empresa-parceira.png) |
+| Autenticar usuário | ![Autenticar usuário](docs/diagramas-sequencia/05-autenticar-usuario.png) |
+| Enviar moedas | ![Enviar moedas](docs/diagramas-sequencia/06-enviar-moedas.png) |
+| Consultar extrato do professor | ![Consultar extrato do professor](docs/diagramas-sequencia/07-consultar-extrato-professor.png) |
+| Cadastrar aluno | ![Cadastrar aluno](docs/diagramas-sequencia/08-cadastrar-aluno.png) |
+
+## 🧭 Diagrama de Visão Geral de Interação
+
+![Diagrama de Visão Geral de Interação](docs/diagrama_visao_geral_interacao.png)
+
 ## 🛠️ Tecnologias
 
 | Camada | Tecnologia |
 |---|---|
 | **Back-end** | Java 17, Spring Boot 4.1, Spring Web MVC, Spring Data JPA (Hibernate) |
 | **Banco de dados** | MySQL 9 |
-| **Segurança** | BCrypt (`spring-security-crypto`) para o hash das senhas |
+| **E-mail** | Spring Mail (`spring-boot-starter-mail`), com Mailtrap para testes |
+| **Segurança** | BCrypt (`spring-security-crypto`) para o hash das senhas; login por perfil (token JWT planejado) |
 | **Front-end** | Next.js, React, TypeScript e Tailwind CSS |
 | **Build** | Maven (wrapper `mvnw` incluso no projeto) |
 
@@ -216,7 +248,8 @@ Front-end (Next.js)  ──HTTP/JSON──▶  Controller  ──▶  Service  �
 | **Validator** | `validator` | Validação dos dados de entrada antes das regras de negócio |
 | **Util** | `util` | Utilitários de validação e formatação (CPF e CNPJ) |
 | **Exception** | `exception` | Exceções de negócio e tratamento centralizado de erros |
-| **Config** | `config` | Configurações (codificador de senhas, CORS) |
+| **Config** | `config` | Configurações (codificador de senhas, CORS) e carga inicial dos professores |
+| **Evento** | `evento` | Eventos de envio de moedas e de resgate, publicados após a transação |
 
 **Estratégia de acesso ao banco: ORM.** O mapeamento objeto-relacional é feito com **JPA/Hibernate**:
 
@@ -232,7 +265,8 @@ Front-end (Next.js)  ──HTTP/JSON──▶  Controller  ──▶  Service  �
 |---|---|
 | `400` | Dados inválidos, campo obrigatório ausente, JSON malformado ou id em formato inválido |
 | `404` | Registro não encontrado |
-| `409` | Login, e-mail, CNPJ ou CPF já cadastrado |
+| `401` | Login ou senha inválidos, ou senha atual incorreta |
+| `409` | Login, e-mail, CNPJ ou CPF já cadastrado, ou saldo insuficiente |
 
 ## 📁 Estrutura do Repositório
 
@@ -255,13 +289,20 @@ sistema-moeda-estudantil/
 ├── frontend/
 │   └── app/
 │       ├── componentes/
-│       ├── alunos/page.tsx
-│       ├── empresas/page.tsx
+│       ├── lib/
+│       ├── login/
+│       ├── perfil/
+│       ├── professor/        (enviar moedas e extrato)
+│       ├── vantagens/        (catálogo do aluno e gestão da empresa)
+│       ├── extrato/
+│       ├── alunos/
+│       ├── empresas/
 │       └── page.tsx
 ├── database/
 │   └── 03_alunos_instituicoes_cursos.sql
 ├── docs/
-│   └── (diagramas UML e modelo ER)
+│   ├── diagramas-sequencia/
+│   └── (demais diagramas UML e modelo ER)
 ├── tests/
 │   └── teste-api-alunos.ps1
 └── README.md
@@ -306,6 +347,31 @@ mysql -u root -p moeda_estudantil < database/03_alunos_instituicoes_cursos.sql
 ```
 
 Sem essa carga, a lista de instituições do cadastro de alunos fica vazia.
+
+**5. E-mails (opcional)**
+
+Sem configuração de SMTP, o back-end não envia e-mails e apenas registra no log o texto "E-mail simulado". Para ver os e-mails, use uma caixa de testes como o [Mailtrap](https://mailtrap.io) e defina as variáveis antes de subir o back-end (use os valores da sua caixa; **não** grave a senha no repositório):
+
+```bash
+export SPRING_MAIL_HOST=sandbox.smtp.mailtrap.io
+export SPRING_MAIL_PORT=2525
+export SPRING_MAIL_USERNAME=seu_usuario
+export SPRING_MAIL_PASSWORD=sua_senha
+export SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+export SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+```
+
+**6. Usuários de teste**
+
+Aluno e empresa criam a própria conta pelas telas de cadastro (a opção "Entrar" aparece no menu). Os professores são pré-cadastrados automaticamente na primeira execução, desde que já existam instituições (passo 4); reinicie o back-end se necessário:
+
+| Login | Senha | Perfil |
+|---|---|---|
+| `prof.ana` | `professor123` | Professor |
+| `prof.carlos` | `professor123` | Professor |
+| `prof.marina` | `professor123` | Professor |
+
+Cada professor recebe 1.000 moedas a cada semestre, acumuláveis, creditadas automaticamente.
 
 Com tudo em execução, acesse `http://localhost:3000`.
 
@@ -354,8 +420,11 @@ npm run dev
 
 **5. Acessar as interfaces**
 
-- Alunos: http://localhost:3000/alunos
-- Empresas Parceiras: http://localhost:3000/empresas
+- Início e login: http://localhost:3000
+- Cadastro de aluno: http://localhost:3000/alunos
+- Cadastro de empresa parceira: http://localhost:3000/empresas
+
+A configuração de e-mail e os usuários de teste estão nos passos 5 e 6 acima; no PowerShell, defina as variáveis com `$env:NOME="valor"`.
 
 
 ## 🔌 API — Empresa Parceira
@@ -450,6 +519,55 @@ As instituições e os cursos são previamente cadastrados no banco de dados. Du
 O módulo utiliza as entidades `Usuario`, `Aluno`, `InstituicaoEnsino` e `Curso`.
 
 A entidade `Aluno` herda os campos de autenticação de `Usuario`, utilizando a estratégia de herança `JOINED`. Cada aluno está vinculado a um curso, e cada curso pertence a uma instituição de ensino.
+
+## 🔐 API — Autenticação e Perfil
+
+| Método | Rota | Descrição | Respostas |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Autentica aluno, professor ou empresa e devolve `{id, perfil, nome}` | `200`, `400`, `401` |
+| `PUT` | `/api/auth/senha` | Altera a senha, conferindo a senha atual (`{usuarioId, senhaAtual, novaSenha}`) | `204`, `400`, `401`, `404` |
+
+O front-end guarda a sessão no navegador e mostra apenas as telas do perfil autenticado. A tela **Meu perfil** permite ao aluno e à empresa editar os próprios dados (CPF, CNPJ e login ficam bloqueados), e a todos trocar a senha.
+
+> ⚠️ **Limitação conhecida:** a API ainda não exige token nas demais rotas. A proteção por JWT com Spring Security está planejada como evolução.
+
+## 👩‍🏫 API — Professores
+
+Base: `/api/professores/{professorId}`
+
+| Método | Rota | Descrição | Respostas |
+|---|---|---|---|
+| `GET` | `/` | Dados do professor e saldo atual | `200`, `404` |
+| `GET` | `/extrato` | Saldo e envios realizados | `200`, `404` |
+| `POST` | `/envios` | Envia moedas a um aluno: `{alunoId, valor, motivo}` | `201`, `400`, `404`, `409` |
+
+- O saldo semestral é creditado de forma automática: 1.000 moedas por semestre decorrido, acumuláveis (idempotente, controlado por `ultimoSemestreCreditado`).
+- O envio exige aluno, valor entre 1 e 100.000, motivo obrigatório (até 500 caracteres) e saldo suficiente (`409` se insuficiente).
+- Após a confirmação da transação, o aluno recebe um e-mail avisando das moedas e do motivo.
+
+## 🎁 API — Vantagens, Resgate e Extrato
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/empresas-parceiras/{empresaId}/vantagens` | Cadastra vantagem (nome, descrição, foto e custo em moedas) |
+| `GET` | `/api/empresas-parceiras/{empresaId}/vantagens` | Lista as vantagens da empresa |
+| `GET` | `/api/vantagens` | Catálogo completo para os alunos |
+| `PUT` | `/api/vantagens/{id}` | Atualiza uma vantagem |
+| `DELETE` | `/api/vantagens/{id}` | Remove uma vantagem |
+| `POST` | `/api/alunos/{alunoId}/resgates` | Resgata uma vantagem: `{vantagemId}` (`201`, `404`, `409`) |
+| `GET` | `/api/alunos/{alunoId}/extrato` | Saldo, recebimentos e trocas do aluno |
+
+O resgate usa bloqueio pessimista do saldo do aluno, debita o custo, registra a transação com um código de cupom único e, após a confirmação, envia os e-mails.
+
+## ✉️ Envio de e-mails
+
+Os e-mails são enviados em HTML (com versão em texto) por eventos disparados **depois** da confirmação da transação, de modo que ninguém é avisado de uma operação que falhou:
+
+| Evento | Destinatário | Conteúdo |
+|---|---|---|
+| Envio de moedas | Aluno | Quantidade, professor e motivo |
+| Resgate de vantagem | Aluno | Cupom com o código gerado |
+| Resgate de vantagem | Empresa parceira | Código para conferência da troca |
 
 ## 🧪 Testes da Lab03S03
 
