@@ -82,6 +82,17 @@ export function useSessaoExigida(perfil: Perfil): Sessao | null {
   return autorizado;
 }
 
+export function useSessaoLogada(): Sessao | null {
+  const router = useRouter();
+  const { sessao, pronto } = useSessao();
+
+  useEffect(() => {
+    if (pronto && !sessao) router.replace("/login");
+  }, [pronto, sessao, router]);
+
+  return sessao;
+}
+
 export const rotuloPerfil: Record<Perfil, string> = {
   ALUNO: "Aluno",
   PROFESSOR: "Professor",

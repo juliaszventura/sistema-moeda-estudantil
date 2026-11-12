@@ -18,15 +18,18 @@ const porPerfil: Record<Perfil, LinkMenu[]> = {
         { href: "/", rotulo: "Início", chave: "inicio" },
         { href: "/vantagens", rotulo: "Vantagens", chave: "vantagens" },
         { href: "/extrato", rotulo: "Extrato", chave: "extrato" },
+        { href: "/perfil", rotulo: "Meu perfil", chave: "perfil" },
     ],
     PROFESSOR: [
         { href: "/", rotulo: "Início", chave: "inicio" },
         { href: "/professor/enviar", rotulo: "Enviar moedas", chave: "enviar" },
         { href: "/professor/extrato", rotulo: "Extrato", chave: "extrato" },
+        { href: "/perfil", rotulo: "Meu perfil", chave: "perfil" },
     ],
     EMPRESA: [
         { href: "/", rotulo: "Início", chave: "inicio" },
         { href: "/vantagens/gerenciar", rotulo: "Minhas vantagens", chave: "gerenciar" },
+        { href: "/perfil", rotulo: "Meu perfil", chave: "perfil" },
     ],
 };
 
