@@ -55,7 +55,7 @@ public class Transacao {
     @Column(name = "codigo", length = 9, unique = true)
     private String codigo;
 
-    public static Transacao envio(Usuario professor, Aluno aluno, int valor, String motivo) {
+    static Transacao envio(Professor professor, Aluno aluno, int valor, String motivo) {
         Transacao transacao = new Transacao();
         transacao.tipo = TipoTransacao.ENVIO;
         transacao.valor = valor;
@@ -66,7 +66,7 @@ public class Transacao {
         return transacao;
     }
 
-    public static Transacao resgate(Aluno aluno, Vantagem vantagem, String codigo) {
+    static Transacao resgate(Aluno aluno, Vantagem vantagem, String codigo) {
         Transacao transacao = new Transacao();
         transacao.tipo = TipoTransacao.RESGATE;
         transacao.valor = vantagem.getCustoMoedas();

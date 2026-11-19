@@ -50,7 +50,12 @@ public abstract class Usuario {
         this.senhaHash = senhaHash;
     }
 
-    public String getNomeExibicao() {
-        return login;
-    }
+    /**
+     * Cada subclasse informa o próprio perfil (GRASP: Polimorfismo), evitando
+     * cadeias de instanceof em quem precisa saber o tipo do usuário.
+     */
+    public abstract Perfil getPerfil();
+
+    /** Nome mostrado na tela e no extrato; cada perfil sabe qual é o seu. */
+    public abstract String getNomeExibicao();
 }

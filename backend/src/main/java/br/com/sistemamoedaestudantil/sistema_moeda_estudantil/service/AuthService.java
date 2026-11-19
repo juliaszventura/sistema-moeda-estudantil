@@ -6,8 +6,6 @@ import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.dto.AuthResponse;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.NaoAutenticadoException;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RecursoNaoEncontradoException;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RequisicaoInvalidaException;
-import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model.Aluno;
-import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model.EmpresaParceira;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model.Professor;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model.Usuario;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.repository.UsuarioRepository;
@@ -49,7 +47,7 @@ public class AuthService {
         if (usuario instanceof Professor professor) {
             creditoSemestralService.aplicar(professor);
         }
-        return new AuthResponse(usuario.getId(), perfilDe(usuario), usuario.getNomeExibicao());
+        return new AuthResponse(usuario.getId(), usuario.getPerfil().name(), usuario.getNomeExibicao());
     }
 
     @Transactional
@@ -71,18 +69,5 @@ public class AuthService {
             throw new NaoAutenticadoException("Senha atual incorreta");
         }
         usuario.setSenhaHash(passwordEncoder.encode(nova));
-    }
-
-    private String perfilDe(Usuario usuario) {
-        if (usuario instanceof Aluno) {
-            return "ALUNO";
-        }
-        if (usuario instanceof Professor) {
-            return "PROFESSOR";
-        }
-        if (usuario instanceof EmpresaParceira) {
-            return "EMPRESA";
-        }
-        throw new NaoAutenticadoException(MENSAGEM_INVALIDO);
     }
 }

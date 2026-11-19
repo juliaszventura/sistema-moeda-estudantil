@@ -47,4 +47,9 @@ public class EmpresaParceira extends Usuario {
     public String getNomeExibicao() {
         return razaoSocial;
     }
+
+    @Override
+    public Perfil getPerfil() {
+        return Perfil.EMPRESA;
+    }
 }

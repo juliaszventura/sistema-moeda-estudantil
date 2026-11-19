@@ -50,13 +50,7 @@ public class ResgateService {
         Vantagem vantagem = vantagemRepository.findById(request.vantagemId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Vantagem não encontrada"));
 
-        if (aluno.getSaldoMoedas() < vantagem.getCustoMoedas()) {
-            throw new RegraNegocioException("Saldo insuficiente: você tem " + aluno.getSaldoMoedas()
-                    + " moedas e a vantagem custa " + vantagem.getCustoMoedas());
-        }
-
-        aluno.setSaldoMoedas(aluno.getSaldoMoedas() - vantagem.getCustoMoedas());
-        Transacao transacao = transacaoRepository.save(Transacao.resgate(aluno, vantagem, gerarCodigoUnico()));
+        Transacao transacao = transacaoRepository.save(aluno.resgatar(vantagem, gerarCodigoUnico()));
 
         publicador.publishEvent(new ResgateRealizadoEvento(
                 aluno.getNome(),

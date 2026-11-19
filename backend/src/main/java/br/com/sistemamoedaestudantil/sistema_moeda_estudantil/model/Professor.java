@@ -1,5 +1,6 @@
 package br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model;
 
+import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RegraNegocioException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -68,20 +69,41 @@ public class Professor extends Usuario {
         return saldoMoedas;
     }
 
-    public void setSaldoMoedas(int saldoMoedas) {
-        this.saldoMoedas = saldoMoedas;
-    }
-
     public String getUltimoSemestreCreditado() {
         return ultimoSemestreCreditado;
     }
 
-    public void setUltimoSemestreCreditado(String ultimoSemestreCreditado) {
-        this.ultimoSemestreCreditado = ultimoSemestreCreditado;
+    /**
+     * Envia moedas a um aluno. O professor conhece o próprio saldo, então é ele
+     * quem confere se há moedas suficientes e debita o valor (GRASP: Especialista
+     * na Informação). Devolve a transação que registra o envio.
+     */
+    public Transacao distribuirMoedas(Aluno aluno, int valor, String motivo) {
+        if (saldoMoedas < valor) {
+            throw new RegraNegocioException("Saldo insuficiente: você tem " + saldoMoedas
+                    + " moedas e tentou enviar " + valor);
+        }
+        saldoMoedas -= valor;
+        aluno.receberMoedas(valor);
+        return Transacao.envio(this, aluno, valor, motivo);
+    }
+
+    /**
+     * Credita as moedas de um ou mais semestres, de forma acumulável, e registra
+     * qual foi o último semestre creditado.
+     */
+    public void receberCreditoSemestral(String semestreAtual, int moedas) {
+        saldoMoedas += moedas;
+        ultimoSemestreCreditado = semestreAtual;
     }
 
     @Override
     public String getNomeExibicao() {
         return nome;
+    }
+
+    @Override
+    public Perfil getPerfil() {
+        return Perfil.PROFESSOR;
     }
 }

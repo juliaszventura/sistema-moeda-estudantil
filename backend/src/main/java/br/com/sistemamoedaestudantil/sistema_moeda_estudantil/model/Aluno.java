@@ -1,4 +1,5 @@
 package br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model;
+import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RegraNegocioException;
 import jakarta.persistence.*;
 @Entity
 @Table(name="aluno")
@@ -17,6 +18,20 @@ public class Aluno extends Usuario {
  public String getRg(){return rg;} public void setRg(String v){rg=v;}
  public String getEndereco(){return endereco;} public void setEndereco(String v){endereco=v;}
  public Curso getCurso(){return curso;} public void setCurso(Curso v){curso=v;}
- public int getSaldoMoedas(){return saldoMoedas;} public void setSaldoMoedas(int v){saldoMoedas=v;}
+ public int getSaldoMoedas(){return saldoMoedas;}
+
+ /** Recebe moedas enviadas por um professor (chamado por Professor.distribuirMoedas). */
+ void receberMoedas(int valor){saldoMoedas+=valor;}
+
+ /**
+  * Troca moedas por uma vantagem. O aluno conhece o próprio saldo, então é ele quem
+  * confere se pode pagar e debita o custo (GRASP: Especialista na Informação).
+  */
+ public Transacao resgatar(Vantagem vantagem,String codigo){
+  if(saldoMoedas<vantagem.getCustoMoedas()) throw new RegraNegocioException("Saldo insuficiente: você tem "+saldoMoedas+" moedas e a vantagem custa "+vantagem.getCustoMoedas());
+  saldoMoedas-=vantagem.getCustoMoedas();
+  return Transacao.resgate(this,vantagem,codigo);
+ }
  @Override public String getNomeExibicao(){return nome;}
+ @Override public Perfil getPerfil(){return Perfil.ALUNO;}
 }

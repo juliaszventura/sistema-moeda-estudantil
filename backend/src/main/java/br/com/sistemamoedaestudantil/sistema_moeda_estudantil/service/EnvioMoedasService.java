@@ -4,7 +4,6 @@ import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.dto.EnvioMoedasReq
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.dto.EnvioMoedasResponse;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.evento.EnvioMoedasEvento;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RecursoNaoEncontradoException;
-import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RegraNegocioException;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.exception.RequisicaoInvalidaException;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model.Aluno;
 import br.com.sistemamoedaestudantil.sistema_moeda_estudantil.model.Professor;
@@ -53,15 +52,8 @@ public class EnvioMoedasService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado"));
 
         int valor = request.valor();
-        if (professor.getSaldoMoedas() < valor) {
-            throw new RegraNegocioException("Saldo insuficiente: você tem " + professor.getSaldoMoedas()
-                    + " moedas e tentou enviar " + valor);
-        }
-
         String motivo = request.motivo().trim();
-        professor.setSaldoMoedas(professor.getSaldoMoedas() - valor);
-        aluno.setSaldoMoedas(aluno.getSaldoMoedas() + valor);
-        Transacao transacao = transacaoRepository.save(Transacao.envio(professor, aluno, valor, motivo));
+        Transacao transacao = transacaoRepository.save(professor.distribuirMoedas(aluno, valor, motivo));
 
         publicador.publishEvent(new EnvioMoedasEvento(
                 aluno.getNome(), aluno.getEmail(), professor.getNome(), valor, motivo));

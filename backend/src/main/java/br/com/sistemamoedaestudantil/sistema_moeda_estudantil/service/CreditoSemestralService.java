@@ -15,8 +15,7 @@ public class CreditoSemestralService {
         String atual = Semestre.atual(LocalDate.now());
         int semestres = Semestre.decorridos(professor.getUltimoSemestreCreditado(), atual);
         if (semestres > 0) {
-            professor.setSaldoMoedas(professor.getSaldoMoedas() + semestres * MOEDAS_POR_SEMESTRE);
-            professor.setUltimoSemestreCreditado(atual);
+            professor.receberCreditoSemestral(atual, semestres * MOEDAS_POR_SEMESTRE);
         }
     }
 }
